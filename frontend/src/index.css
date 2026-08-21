@@ -1,0 +1,82 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+
+  --bg-app-from: #eef2fb;
+  --bg-app-to: #f8fafc;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
+
+  --chip-idle-fill: #f1f5f9;
+  --line-idle-stroke: #cbd5e1;
+  --ring-idle-stroke: #e2e8f0;
+
+  --chart-grid: #e2e8f0;
+  --chart-axis: #64748b;
+  --tooltip-bg: #ffffff;
+  --tooltip-border: #e2e8f0;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --bg-app-from: #101a2e;
+  --bg-app-to: #05070d;
+  --scrollbar-thumb: #263148;
+  --scrollbar-thumb-hover: #37456e;
+
+  --chip-idle-fill: #141c2e;
+  --line-idle-stroke: #243050;
+  --ring-idle-stroke: #243050;
+
+  --chart-grid: #1b2438;
+  --chart-axis: #64748b;
+  --tooltip-bg: #0e1626;
+  --tooltip-border: #1b2438;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 15% 0%, var(--bg-app-from) 0%, var(--bg-app-to) 55%, var(--bg-app-to) 100%);
+  color: #0f172a;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease;
+}
+
+.dark body {
+  color: #e6e9f2;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: content-box;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

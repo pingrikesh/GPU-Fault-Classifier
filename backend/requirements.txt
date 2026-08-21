@@ -1,0 +1,16 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+websockets==13.1
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.5.1
+joblib==1.4.2
+pydantic==2.9.0
+eval-type-backport==0.2.0
+python-dotenv==1.0.1
+pytest==8.3.3
+
+# Optional: only needed to run with TELEMETRY_MODE=nvml (real GPU telemetry
+# via NVML, see app/collectors/nvml_gpu.py and README.md > "Extending
+# toward real hardware"). Not required for the default simulated mode.
+# nvidia-ml-py==12.560.30
