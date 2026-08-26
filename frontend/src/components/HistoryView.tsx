@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "../lib/api";
 import { faultLabel, componentLabel, SEVERITY_COLOR } from "../lib/format";
 import type { FaultRow, FaultStats, ModelInfo, TaxonomyEntry } from "../types";
 import { Card, CardHeader, LayerBadge, SeverityBadge } from "./common";
+import { ErrorState, HistorySkeleton, StatusBanner } from "./Status";
 
 interface Props {
   taxonomyById: Map<string, TaxonomyEntry>;
@@ -20,10 +21,15 @@ export function HistoryView({ taxonomyById }: Props) {
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [faultFilter, setFaultFilter] = useState<string>("");
   const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
+  const hasLoaded = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      if (!hasLoaded.current) setLoading(true);
       try {
         const [f, s, m] = await Promise.all([
           api.faults({ status: statusFilter || undefined, faultId: faultFilter || undefined, limit: 100 }),
@@ -34,9 +40,15 @@ export function HistoryView({ taxonomyById }: Props) {
           setFaults(f);
           setStats(s);
           setModelInfo(m);
+          setError(null);
+          hasLoaded.current = true;
         }
-      } catch {
-        // backend not reachable yet; will retry on next poll
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Couldn't load fault history.");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
     load();
@@ -45,7 +57,7 @@ export function HistoryView({ taxonomyById }: Props) {
       cancelled = true;
       clearInterval(id);
     };
-  }, [statusFilter, faultFilter]);
+  }, [statusFilter, faultFilter, reload]);
 
   useEffect(() => {
     setPage(0);
@@ -62,11 +74,43 @@ export function HistoryView({ taxonomyById }: Props) {
     [faults, currentPage]
   );
 
+  if (loading && !hasLoaded.current) {
+    return <HistorySkeleton />;
+  }
+
+  if (error && !hasLoaded.current) {
+    return (
+      <Card>
+        <ErrorState
+          title="Couldn't load history"
+          message={error}
+          onRetry={() => setReload((n) => n + 1)}
+        />
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {error && (
+        <StatusBanner
+          tone="warning"
+          title="Couldn't refresh history"
+          message={`${error} Showing the last successful load.`}
+          action={
+            <button
+              type="button"
+              onClick={() => setReload((n) => n + 1)}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ring-current/30 hover:bg-black/5 dark:hover:bg-white/5"
+            >
+              <RefreshCw size={11} /> Retry
+            </button>
+          }
+        />
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader title="Fault Frequency by Type" subtitle="All recorded episodes since backend start" />
+          <CardHeader title="Fault Frequency by Type" subtitle="All recorded episodes since backend start" info="faultFrequency" />
           <div className="p-4 h-64">
             {byFaultData.length ? (
               <ResponsiveContainer width="100%" height="100%">
@@ -92,7 +136,7 @@ export function HistoryView({ taxonomyById }: Props) {
         </Card>
 
         <Card>
-          <CardHeader title="Classifier Accuracy" subtitle="Held-out evaluation per component type" />
+          <CardHeader title="Classifier Accuracy" subtitle="Held-out evaluation per component type" info="classifierAccuracy" />
           <div className="p-4 space-y-3">
             {modelInfo?.componentTypes ? (
               Object.entries(modelInfo.componentTypes).map(([ctype, report]) => (
@@ -125,6 +169,7 @@ export function HistoryView({ taxonomyById }: Props) {
         <CardHeader
           title="Fault Episode History"
           subtitle="Every detected fault episode, open or resolved"
+          info="faultHistory"
           right={
             <div className="flex items-center gap-2">
               <select

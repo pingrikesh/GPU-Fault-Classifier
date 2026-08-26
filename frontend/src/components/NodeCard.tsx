@@ -3,6 +3,7 @@ import type { ComponentMetrics, Topology, Prediction, TaxonomyEntry, Layer } fro
 import { healthFor, worstSeverity, type HealthInfo } from "../lib/health";
 import { componentLabel, SEVERITY_COLOR } from "../lib/format";
 import { FaultTooltipContent, LayerBadge, LayerIcon } from "./common";
+import { InfoPopover } from "./InfoPopover";
 import { HoverTooltip } from "./Tooltip";
 import { ViewBoxFrame } from "./ViewBoxFrame";
 
@@ -115,6 +116,7 @@ export function NodeCard({ node, topology, predictions, taxonomyById, metrics, s
           <span className={`h-2 w-2 rounded-full ${nodeColor.dot}`} />
           {worstFaultLayer && <LayerBadge layer={worstFaultLayer} compact />}
           <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-200">Node {node}</h4>
+          <InfoPopover glossaryKey="nodeCard" />
         </div>
         <span className="text-[11px] uppercase tracking-wider text-slate-500">{gpus.length}×GPU</span>
       </div>

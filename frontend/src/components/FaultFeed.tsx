@@ -2,13 +2,15 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, X } from "lucide-react";
 import type { Severity, TaxonomyEntry } from "../types";
 import { componentLabel, faultLabel, SEVERITY_COLOR, timeAgo } from "../lib/format";
-import type { LiveFeedItem } from "../hooks/useTelemetryStream";
+import type { ConnectionStatus, LiveFeedItem } from "../hooks/useTelemetryStream";
 import { Card, CardHeader, FilterChip, LayerBadge } from "./common";
+import { ErrorState, Skeleton } from "./Status";
 
 interface Props {
   feed: LiveFeedItem[];
   taxonomyById: Map<string, TaxonomyEntry>;
   className?: string;
+  streamStatus?: ConnectionStatus;
 }
 
 type SeverityFilter = "critical" | "warning";
@@ -18,7 +20,7 @@ function itemSeverity(item: LiveFeedItem, taxonomyById: Map<string, TaxonomyEntr
   return taxonomyById.get(item.faultId)?.severity ?? item.severity ?? "warning";
 }
 
-export function FaultFeed({ feed, taxonomyById, className = "" }: Props) {
+export function FaultFeed({ feed, taxonomyById, className = "", streamStatus = "open" }: Props) {
   const [unresolvedOnly, setUnresolvedOnly] = useState(false);
   const [severityFilters, setSeverityFilters] = useState<Set<SeverityFilter>>(new Set());
   const [nodeFilter, setNodeFilter] = useState<number | "all">("all");
@@ -87,7 +89,7 @@ export function FaultFeed({ feed, taxonomyById, className = "" }: Props) {
 
   return (
     <Card className={`flex min-h-0 flex-col overflow-hidden ${className}`}>
-      <CardHeader title="Live Fault Feed" subtitle="Real-time classifier detections" />
+      <CardHeader title="Live Fault Feed" subtitle="Real-time classifier detections" info="faultFeed" />
       {feed.length > 0 && (
         <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b border-slate-100 px-3 py-2 dark:border-white/[0.05]">
           <FilterChip
@@ -134,7 +136,22 @@ export function FaultFeed({ feed, taxonomyById, className = "" }: Props) {
         </div>
       )}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-3 py-3">
-        {feed.length === 0 ? (
+        {feed.length === 0 && streamStatus === "connecting" ? (
+          <div className="space-y-2" role="status" aria-label="Loading fault feed">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-slate-100 px-3 py-2.5 dark:border-white/[0.06]">
+                <Skeleton className="h-3.5 w-2/3" />
+                <Skeleton className="mt-2 h-3 w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : feed.length === 0 && streamStatus === "closed" ? (
+          <ErrorState
+            title="Fault feed paused"
+            message="The live connection dropped, so new detections cannot arrive until it recovers."
+            className="py-8"
+          />
+        ) : feed.length === 0 ? (
           <p className="px-2 py-8 text-center text-sm text-slate-500">No faults detected yet. Cluster nominal.</p>
         ) : filtered.length === 0 ? (
           <p className="px-2 py-8 text-center text-sm text-slate-500">No entries match the current filters.</p>

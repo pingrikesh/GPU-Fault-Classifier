@@ -104,6 +104,7 @@ export function SummaryBar({ predictions, taxonomyById, tick, status }: Props) {
         value={`${stats.healthyPct.toFixed(0)}%`}
         hint={`${stats.healthy}/${stats.total} components nominal`}
         tone={stats.healthyPct > 95 ? "good" : stats.healthyPct > 85 ? "warning" : "critical"}
+        info="clusterHealth"
       />
       <KpiCard
         label="Critical Faults"
@@ -111,6 +112,7 @@ export function SummaryBar({ predictions, taxonomyById, tick, status }: Props) {
         hint="Needs immediate attention"
         tone={stats.critical > 0 ? "critical" : "good"}
         trend={criticalTrend}
+        info="criticalFaults"
       />
       <KpiCard
         label="Warnings"
@@ -118,13 +120,20 @@ export function SummaryBar({ predictions, taxonomyById, tick, status }: Props) {
         hint="Degraded performance"
         tone={stats.warning > 0 ? "warning" : "good"}
         trend={warningTrend}
+        info="warnings"
       />
-      <KpiCard label="Monitored Components" value={String(stats.total)} hint="GPU · NVLink · PCIe · Fabric · NCCL" />
+      <KpiCard
+        label="Monitored Components"
+        value={String(stats.total)}
+        hint="GPU · NVLink · PCIe · Fabric · NCCL"
+        info="monitoredComponents"
+      />
       <KpiCard
         label="Simulation Uptime"
         value={uptimeLabel}
         hint={status === "open" ? "Live \u00b7 streaming" : status === "connecting" ? "Connecting\u2026" : "Disconnected"}
         tone={status === "open" ? "good" : "critical"}
+        info="simulationUptime"
       />
     </div>
   );

@@ -157,6 +157,7 @@ export function NetworkFabric({ topology, predictions, taxonomyById, selected, o
       <CardHeader
         title="Inter-Node Fabric"
         subtitle="Spine → Leaf → Node"
+        info="interNodeFabric"
         right={
           (() => {
             for (let n = 0; n < nNodes; n++) {
