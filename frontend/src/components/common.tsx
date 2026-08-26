@@ -3,7 +3,9 @@ import { ArrowDown, ArrowUp, ArrowLeftRight, Cable, HeartPulse, Link2, Minus, Ne
 import { LAYER_COLOR, layerLabel, SEVERITY_COLOR } from "../lib/format";
 import type { HealthInfo } from "../lib/health";
 import type { Layer, Severity } from "../types";
+import type { GlossaryKey } from "../lib/glossary";
 import { HoverTooltip } from "./Tooltip";
+import { InfoPopover } from "./InfoPopover";
 
 const LAYER_ICON: Record<Layer, ComponentType<{ size?: number; strokeWidth?: number }>> = {
   physical: Cable,
@@ -43,11 +45,24 @@ export function Card({ children, className = "" }: PropsWithChildren<{ className
   );
 }
 
-export function CardHeader({ title, subtitle, right }: { title: string; subtitle?: string; right?: React.ReactNode }) {
+export function CardHeader({
+  title,
+  subtitle,
+  right,
+  info,
+}: {
+  title: string;
+  subtitle?: string;
+  right?: React.ReactNode;
+  info?: GlossaryKey;
+}) {
   return (
     <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 px-5 pb-3 pt-4 dark:border-white/[0.05]">
-      <div>
-        <h3 className="text-sm font-semibold tracking-wide text-slate-800 dark:text-slate-100">{title}</h3>
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          <h3 className="text-sm font-semibold tracking-wide text-slate-800 dark:text-slate-100">{title}</h3>
+          {info && <InfoPopover glossaryKey={info} />}
+        </div>
         {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
       </div>
       {right}
@@ -191,12 +206,14 @@ export function KpiCard({
   hint,
   tone = "default",
   trend,
+  info,
 }: {
   label: string;
   value: string;
   hint?: string;
   tone?: "default" | "warning" | "critical" | "good";
   trend?: KpiTrend;
+  info?: GlossaryKey;
 }) {
   const toneClass =
     tone === "critical"
@@ -208,7 +225,10 @@ export function KpiCard({
       : "text-slate-800 dark:text-slate-100";
   return (
     <Card className="px-5 py-4">
-      <p className="text-xs uppercase tracking-wider text-slate-500">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs uppercase tracking-wider text-slate-500">{label}</p>
+        {info && <InfoPopover glossaryKey={info} align="end" />}
+      </div>
       <p className={`mt-1.5 text-2xl font-semibold tabular-nums ${toneClass}`}>{value}</p>
       {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
       {trend && <TrendIndicator {...trend} />}

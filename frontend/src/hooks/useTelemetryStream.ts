@@ -21,13 +21,18 @@ export interface TelemetryState {
   feed: LiveFeedItem[];
 }
 
-export function useTelemetryStream(): TelemetryState {
+export interface TelemetryStream extends TelemetryState {
+  reconnect: () => void;
+}
+
+export function useTelemetryStream(): TelemetryStream {
   const [status, setStatus] = useState<ConnectionStatus>("connecting");
   const [tick, setTick] = useState(0);
   const [metrics, setMetrics] = useState<Record<string, ComponentMetrics>>({});
   const [predictions, setPredictions] = useState<Record<string, Prediction>>({});
   const [feed, setFeed] = useState<LiveFeedItem[]>([]);
   const [history, setHistory] = useState<Record<string, ComponentMetrics[]>>({});
+  const [generation, setGeneration] = useState(0);
   const feedCounter = useRef(0);
 
   useEffect(() => {
@@ -88,7 +93,15 @@ export function useTelemetryStream(): TelemetryState {
       if (retryTimer) clearTimeout(retryTimer);
       ws?.close();
     };
-  }, []);
+  }, [generation]);
 
-  return { status, tick, metrics, predictions, history, feed };
+  return {
+    status,
+    tick,
+    metrics,
+    predictions,
+    history,
+    feed,
+    reconnect: () => setGeneration((n) => n + 1),
+  };
 }

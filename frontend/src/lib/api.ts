@@ -3,9 +3,24 @@ import type { FaultRow, FaultStats, ModelInfo, TaxonomyEntry, Topology } from ".
 export const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 export const WS_URL = API_BASE.replace(/^http/, "ws") + "/ws/telemetry";
 
+export function describeFetchError(err: unknown): string {
+  if (err instanceof TypeError) {
+    return "Can't reach the API server. Confirm the backend is running (default http://localhost:8000).";
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return "Something went wrong while loading data.";
+}
+
 async function getJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`);
+  } catch (err) {
+    throw new Error(describeFetchError(err));
+  }
+  if (!res.ok) {
+    throw new Error(`The server could not load this data (HTTP ${res.status}). Try again in a moment.`);
+  }
   return res.json() as Promise<T>;
 }
 
